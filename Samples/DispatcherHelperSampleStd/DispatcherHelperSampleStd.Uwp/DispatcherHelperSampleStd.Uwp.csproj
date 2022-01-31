@@ -131,27 +131,27 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>5.4.0</Version>
+      <Version>5.4.2</Version>
     </PackageReference>
     <PackageReference Include="MvvmLightLibsStd10">
       <Version>5.4.0.1-alpha</Version>
-    </PackageReference>
+   </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DispatcherHelperSampleStd.Data\DispatcherHelperSampleStd.Data.csproj">
-      <Project>{dbc15d6c-8da1-40a3-81c2-1215c1793906}</Project>
+     <Project>{dbc15d6c-8da1-40a3-81c2-1215c1793906}</Project>
       <Name>DispatcherHelperSampleStd.Data</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
+ <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+ <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
-  <Target Name="AfterBuild">
+ <Target Name="AfterBuild">
   </Target>
   -->
 </Project>
