@@ -1,6 +1,6 @@
 ﻿// ****************************************************************************
 // <copyright file="NavigationService.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2009-2015
+// Copyright © GalaSoft Laurent Bugnion 2009-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -48,6 +48,79 @@ namespace GalaSoft.MvvmLight.Views
             {
                 return ActivityBase.CurrentActivity.ActivityKey ?? RootPageKey;
             }
+        }
+
+        /// <summary>
+        /// Adds a key/page pair to the navigation service.
+        /// </summary>
+        /// <remarks>For this navigation service to work properly, your Activities
+        /// should derive from the <see cref="ActivityBase"/> class.</remarks>
+        /// <param name="key">The key that will be used later
+        /// in the <see cref="NavigateTo(string)"/> or <see cref="NavigateTo(string, object)"/> methods.</param>
+        /// <param name="activityType">The type of the activity (page) corresponding to the key.</param>
+        public void Configure(string key, Type activityType)
+        {
+            lock (_pagesByKey)
+            {
+                if (_pagesByKey.ContainsKey(key))
+                {
+                    _pagesByKey[key] = activityType;
+                }
+                else
+                {
+                    _pagesByKey.Add(key, activityType);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Allows a caller to get the navigation parameter corresponding 
+        /// to the Intent parameter.
+        /// </summary>
+        /// <param name="intent">The <see cref="Android.App.Activity.Intent"/> 
+        /// of the navigated page.</param>
+        /// <returns>The navigation parameter. If no parameter is found,
+        /// returns null.</returns>
+        public object GetAndRemoveParameter(Intent intent)
+        {
+            if (intent == null)
+            {
+                throw new ArgumentNullException("intent", "This method must be called with a valid Activity intent");
+            }
+
+            var key = intent.GetStringExtra(ParameterKeyName);
+            intent.RemoveExtra(ParameterKeyName);
+
+            if (string.IsNullOrEmpty(key))
+            {
+                return null;
+            }
+
+            lock (_parametersByKey)
+            {
+                if (_parametersByKey.ContainsKey(key))
+                {
+                    var param = _parametersByKey[key];
+                    _parametersByKey.Remove(key);
+                    return param;
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Allows a caller to get the navigation parameter corresponding 
+        /// to the Intent parameter.
+        /// </summary>
+        /// <typeparam name="T">The type of the retrieved parameter.</typeparam>
+        /// <param name="intent">The <see cref="Android.App.Activity.Intent"/> 
+        /// of the navigated page.</param>
+        /// <returns>The navigation parameter casted to the proper type.
+        /// If no parameter is found, returns default(T).</returns>
+        public T GetAndRemoveParameter<T>(Intent intent)
+        {
+            return (T)GetAndRemoveParameter(intent);
         }
 
         /// <summary>
@@ -118,76 +191,6 @@ namespace GalaSoft.MvvmLight.Views
                 ActivityBase.CurrentActivity.StartActivity(intent);
                 ActivityBase.NextPageKey = pageKey;
             }
-        }
-
-        /// <summary>
-        /// Adds a key/page pair to the navigation service.
-        /// </summary>
-        /// <remarks>For this navigation service to work properly, your Activities
-        /// should derive from the <see cref="ActivityBase"/> class.</remarks>
-        /// <param name="key">The key that will be used later
-        /// in the <see cref="NavigateTo(string)"/> or <see cref="NavigateTo(string, object)"/> methods.</param>
-        /// <param name="activityType">The type of the activity (page) corresponding to the key.</param>
-        public void Configure(string key, Type activityType)
-        {
-            lock (_pagesByKey)
-            {
-                if (_pagesByKey.ContainsKey(key))
-                {
-                    _pagesByKey[key] = activityType;
-                }
-                else
-                {
-                    _pagesByKey.Add(key, activityType);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Allows a caller to get the navigation parameter corresponding 
-        /// to the Intent parameter.
-        /// </summary>
-        /// <param name="intent">The <see cref="Android.App.Activity.Intent"/> 
-        /// of the navigated page.</param>
-        /// <returns>The navigation parameter. If no parameter is found,
-        /// returns null.</returns>
-        public object GetAndRemoveParameter(Intent intent)
-        {
-            if (intent == null)
-            {
-                throw new ArgumentNullException("intent", "This method must be called with a valid Activity intent");
-            }
-
-            var key = intent.GetStringExtra(ParameterKeyName);
-
-            if (string.IsNullOrEmpty(key))
-            {
-                return null;
-            }
-
-            lock (_parametersByKey)
-            {
-                if (_parametersByKey.ContainsKey(key))
-                {
-                    return _parametersByKey[key];
-                }
-
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Allows a caller to get the navigation parameter corresponding 
-        /// to the Intent parameter.
-        /// </summary>
-        /// <typeparam name="T">The type of the retrieved parameter.</typeparam>
-        /// <param name="intent">The <see cref="Android.App.Activity.Intent"/> 
-        /// of the navigated page.</param>
-        /// <returns>The navigation parameter casted to the proper type.
-        /// If no parameter is found, returns default(T).</returns>
-        public T GetAndRemoveParameter<T>(Intent intent)
-        {
-            return (T)GetAndRemoveParameter(intent);
         }
     }
 }

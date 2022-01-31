@@ -4,6 +4,7 @@ using System.Windows.Data;
 using System.Windows.Interactivity;
 using System.Windows.Shapes;
 using GalaSoft.MvvmLight.Command;
+using GalaSoft.MvvmLight.Test.ViewModel;
 
 #if NEWUNITTEST
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
@@ -24,7 +25,7 @@ namespace GalaSoft.MvvmLight.Test.Command
             var rectangle = new Rectangle();
             ((IAttachedObject)trigger).Attach(rectangle);
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.SimpleCommand
@@ -45,7 +46,7 @@ namespace GalaSoft.MvvmLight.Test.Command
 
             const string parameterSent = "Hello world";
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.ParameterCommand
@@ -67,7 +68,7 @@ namespace GalaSoft.MvvmLight.Test.Command
             var trigger = new EventToCommandStub();
             ((IAttachedObject)trigger).Attach(rectangle);
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.ParameterCommand
@@ -91,7 +92,7 @@ namespace GalaSoft.MvvmLight.Test.Command
 
             const string parameterSent = "Hello world";
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var bindingCommand = new Binding
             {
                 Source = vm.ParameterCommand
@@ -127,7 +128,7 @@ namespace GalaSoft.MvvmLight.Test.Command
 
             const string parameterSent = "Hello world";
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.ParameterCommand
@@ -150,7 +151,7 @@ namespace GalaSoft.MvvmLight.Test.Command
             var rectangle = new Rectangle();
             ((IAttachedObject)trigger).Attach(rectangle);
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.ToggledCommand
@@ -185,7 +186,7 @@ namespace GalaSoft.MvvmLight.Test.Command
 
             ((IAttachedObject)trigger).Attach(button);
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.ToggledCommand
@@ -211,7 +212,7 @@ namespace GalaSoft.MvvmLight.Test.Command
             var button = new Button();
             ((IAttachedObject)trigger).Attach(button);
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.ToggledCommand
@@ -245,7 +246,7 @@ namespace GalaSoft.MvvmLight.Test.Command
 
             ((IAttachedObject)trigger).Attach(rectangle);
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.ToggledCommand
@@ -275,7 +276,7 @@ namespace GalaSoft.MvvmLight.Test.Command
 
             ((IAttachedObject)trigger).Attach(rectangle);
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.ToggledCommand
@@ -304,7 +305,7 @@ namespace GalaSoft.MvvmLight.Test.Command
             var button = new Button();
             ((IAttachedObject)trigger).Attach(button);
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.ToggledCommandWithParameter
@@ -336,7 +337,7 @@ namespace GalaSoft.MvvmLight.Test.Command
             var button = new Button();
             ((IAttachedObject)trigger).Attach(button);
 
-            var vm = new TestViewModel();
+            var vm = new CommandViewModel();
             var binding = new Binding
             {
                 Source = vm.ToggledCommandWithParameter
@@ -368,6 +369,36 @@ namespace GalaSoft.MvvmLight.Test.Command
             trigger.Invoke();
             Assert.IsTrue(vm.CommandExecuted);
 #endif
+        }
+
+        [TestMethod]
+        public void TestAlwaysInvoke()
+        {
+            var button = new Button
+            {
+                IsEnabled = false
+            };
+
+            var result = false;
+
+            var command = new RelayCommand(
+                () =>
+                {
+                    result = true;
+                });
+
+            var trigger = new EventToCommand
+            {
+                Command = command
+            };
+
+            ((IAttachedObject)trigger).Attach(button);
+            trigger.Invoke();
+            Assert.IsFalse(result);
+
+            trigger.AlwaysInvokeCommand = true;
+            trigger.Invoke();
+            Assert.IsTrue(result);
         }
 #endif
     }

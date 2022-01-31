@@ -36,32 +36,46 @@
     <DefineConstants>__UNIFIED__;__MOBILE__;__IOS__;__IOS__;__UNIFIED__;__MOBILE__;XAMARIN;IOS;XAMARIN</DefineConstants>
     <DocumentationFile>bin\iPhone\Release\GalaSoft.MvvmLight.Platform.XML</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>GalaSoft.MvvmLight.Platform %28iOS%29.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\..\..\..\MvvmLight\Source\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\Binding.cs">
+    <Compile Include="..\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\Binding.cs">
       <Link>Helpers\Binding.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\..\..\MvvmLight\Source\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\BindingGeneric.cs">
+    <Compile Include="..\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\BindingGeneric.cs">
       <Link>Helpers\BindingGeneric.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\..\..\MvvmLight\Source\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\BindingMode.cs">
+    <Compile Include="..\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\BindingGenericObsolete.cs">
+      <Link>Helpers\BindingGenericObsolete.cs</Link>
+    </Compile>
+    <Compile Include="..\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\BindingMode.cs">
       <Link>Helpers\BindingMode.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\..\..\MvvmLight\Source\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\Extensions.cs">
+    <Compile Include="..\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\Extensions.cs">
       <Link>Helpers\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\..\..\MvvmLight\Source\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\IWeakEventListener.cs">
+    <Compile Include="..\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\IWeakEventListener.cs">
       <Link>Helpers\IWeakEventListener.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\..\..\MvvmLight\Source\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\PropertyChangedEventManager.cs">
+    <Compile Include="..\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\PropertyChangedEventManager.cs">
       <Link>Helpers\PropertyChangedEventManager.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\..\..\..\MvvmLight\Source\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\UpdateSourceTriggerMode.cs">
+    <Compile Include="..\GalaSoft.MvvmLight.Platform %28Android%29\Helpers\UpdateSourceTriggerMode.cs">
       <Link>Helpers\UpdateSourceTriggerMode.cs</Link>
     </Compile>
     <Compile Include="..\GalaSoft.MvvmLight.Platform %28NET45%29\Properties\AssemblyInfo.cs">
       <Link>Properties\AssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Helpers\BindingGenericObsoleteApple.cs" />
+    <Compile Include="Helpers\BindingGenericApple.cs" />
+    <Compile Include="Helpers\ExtensionsApple.cs" />
     <Compile Include="Helpers\ObservableTableViewController.cs" />
+    <Compile Include="Helpers\ObservableCollectionViewSource.cs" />
+    <Compile Include="Helpers\ObservableTableViewSource.cs" />
     <Compile Include="Threading\DispatcherHelper.cs" />
     <Compile Include="Views\ControllerBase.cs" />
     <Compile Include="Views\DialogService.cs" />
@@ -78,6 +92,9 @@
       <Project>{6a912701-3ba1-4975-adbf-160caf66b640}</Project>
       <Name>GalaSoft.MvvmLight %28PCL%29</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GalaSoft.MvvmLight.Platform %28iOS%29.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
 </Project>

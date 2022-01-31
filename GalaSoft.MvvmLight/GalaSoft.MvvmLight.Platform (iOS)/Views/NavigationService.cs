@@ -1,6 +1,6 @@
 // ****************************************************************************
 // <copyright file="NavigationService.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2009-2015
+// Copyright © GalaSoft Laurent Bugnion 2009-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -15,7 +15,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using UIKit;
@@ -47,7 +46,9 @@ namespace GalaSoft.MvvmLight.Views
         public const string UnknownPageKey = "-- UNKNOWN --";
 
         private readonly Dictionary<string, TypeActionOrKey> _pagesByKey = new Dictionary<string, TypeActionOrKey>();
-        private UINavigationController _navigation;
+
+        private readonly Dictionary<WeakReference, object> _parametersByController =
+            new Dictionary<WeakReference, object>();
 
         /// <summary>
         /// The key corresponding to the currently displayed page.
@@ -58,17 +59,17 @@ namespace GalaSoft.MvvmLight.Views
             {
                 lock (_pagesByKey)
                 {
-                    if (_navigation.ViewControllers.Length == 0)
+                    if (NavigationController.ViewControllers.Length == 0)
                     {
                         return UnknownPageKey;
                     }
 
-                    if (_navigation.ViewControllers.Length == 1)
+                    if (NavigationController.ViewControllers.Length == 1)
                     {
                         return RootPageKey;
                     }
 
-                    var topController = _navigation.ViewControllers.Last();
+                    var topController = NavigationController.ViewControllers.Last();
 
                     var item = _pagesByKey.Values.FirstOrDefault(
                         i => i.ControllerType == topController.GetType());
@@ -85,154 +86,12 @@ namespace GalaSoft.MvvmLight.Views
         }
 
         /// <summary>
-        /// If possible, discards the current page and displays the previous page
-        /// on the navigation stack.
+        /// Gets the NavigationController that was passed in the <see cref="Initialize"/> method.
         /// </summary>
-        public void GoBack()
+        public UINavigationController NavigationController
         {
-            _navigation.PopViewController(true);
-        }
-
-        /// <summary>
-        /// Displays a new page corresponding to the given key. 
-        /// Make sure to call the <see cref="Configure(string, Type)"/>
-        /// or <see cref="Configure(string, Func{object,UIViewController})"/>
-        /// method first.
-        /// </summary>
-        /// <param name="pageKey">The key corresponding to the page
-        /// that should be displayed.</param>
-        /// <exception cref="ArgumentException">When this method is called for 
-        /// a key that has not been configured earlier.</exception>
-        public void NavigateTo(string pageKey)
-        {
-            NavigateTo(pageKey, null);
-        }
-
-        /// <summary>
-        /// Displays a new page corresponding to the given key,
-        /// and passes a parameter to the new page's constructor.
-        /// Make sure to call the <see cref="Configure(string, Type)"/>
-        /// or <see cref="Configure(string, Func{object,UIViewController})"/>
-        /// method first.
-        /// </summary>
-        /// <param name="pageKey">The key corresponding to the page
-        /// that should be displayed.</param>
-        /// <param name="parameter">The parameter that should be passed
-        /// to the new page's constructor.</param>
-        /// <exception cref="ArgumentException">When this method is called for 
-        /// a key that has not been configured earlier.</exception>
-        /// <exception cref="InvalidOperationException">When this method is called for 
-        /// a page that doesn't have a suitable constructor (i.e.
-        /// a constructor with a parameter corresponding to the
-        /// navigation parameter's type).</exception>
-        public void NavigateTo(string pageKey, object parameter)
-        {
-            lock (_pagesByKey)
-            {
-                Exception creationException = null;
-                var done = false;
-
-                if (!_pagesByKey.ContainsKey(pageKey))
-                {
-                    throw new ArgumentException(
-                        string.Format(
-                            "No such page: {0}. Did you forget to call NavigationService.Configure?",
-                            pageKey),
-                        "pageKey");
-                }
-
-                var item = _pagesByKey[pageKey];
-                UIViewController controller = null;
-
-                if (item.CreateControllerAction != null)
-                {
-                    try
-                    {
-                        controller = item.CreateControllerAction(parameter);
-                        done = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        creationException = ex;
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(item.StoryboardControllerKey))
-                {
-                    if (_navigation == null)
-                    {
-                        throw new InvalidOperationException(
-                            "Unable to navigate: Did you forget to call NavigationService.Initialize?");
-                    }
-
-                    if (_navigation.Storyboard == null)
-                    {
-                        throw new InvalidOperationException(
-                            "Unable to navigate: No storyboard found");
-                    }
-
-                    try
-                    {
-                        controller = _navigation.Storyboard.InstantiateViewController(item.StoryboardControllerKey);
-                        done = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        creationException = ex;
-                    }
-
-                    if (parameter != null)
-                    {
-                        var casted = controller as ControllerBase;
-                        if (casted != null)
-                        {
-                            casted.NavigationParameter = parameter;
-                        }
-                        else
-                        {
-                            throw new InvalidCastException(
-                                string.Format(
-                                    "Cannot cast {0} to {1}",
-                                    controller.GetType().FullName,
-                                    typeof(ControllerBase).FullName));
-                        }
-                    }
-                }
-
-                if (!done && item.ControllerType != null)
-                {
-                    try
-                    {
-                        controller = MakeController(item.ControllerType, parameter);
-
-                        if (controller == null)
-                        {
-                            throw new InvalidOperationException(
-                                "No suitable constructor found for page " + pageKey);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        creationException = ex;
-                    }
-                }
-
-                if (controller == null)
-                {
-                    throw new InvalidOperationException(
-                        string.Format(
-                            "Unable to create a controller for key {0}",
-                            pageKey),
-                            creationException);
-                }
-
-                if (item.ControllerType == null)
-                {
-                    item.ControllerType = controller.GetType();
-                }
-
-                _navigation.PushViewController(controller, true);
-            }
+            get;
+            private set;
         }
 
         /// <summary>
@@ -252,21 +111,6 @@ namespace GalaSoft.MvvmLight.Views
             };
 
             SaveConfigurationItem(key, item);
-        }
-
-        private void SaveConfigurationItem(string key, TypeActionOrKey item)
-        {
-            lock (_pagesByKey)
-            {
-                if (_pagesByKey.ContainsKey(key))
-                {
-                    _pagesByKey[key] = item;
-                }
-                else
-                {
-                    _pagesByKey.Add(key, item);
-                }
-            }
         }
 
         /// <summary>
@@ -308,6 +152,55 @@ namespace GalaSoft.MvvmLight.Views
         }
 
         /// <summary>
+        /// Allows a caller to get the navigation parameter corresponding 
+        /// to the Intent parameter.
+        /// </summary>
+        /// <param name="controller">The <see cref="UIViewController"/> that was navigated to.</param>
+        /// <returns>The navigation parameter. If no parameter is found,
+        /// returns null.</returns>
+        public object GetAndRemoveParameter(UIViewController controller)
+        {
+            if (controller == null)
+            {
+                throw new ArgumentNullException(
+                    "controller",
+                    "This method must be called with a valid UIViewController");
+            }
+
+            lock (_parametersByController)
+            {
+                object value = null;
+                WeakReference key = null;
+
+                foreach (var pair in _parametersByController)
+                {
+                    if (Equals(pair.Key.Target, controller))
+                    {
+                        key = pair.Key;
+                        value = pair.Value;
+                        break;
+                    }
+                }
+
+                if (key != null)
+                {
+                    _parametersByController.Remove(key);
+                }
+
+                return value;
+            }
+        }
+
+        /// <summary>
+        /// If possible, discards the current page and displays the previous page
+        /// on the navigation stack.
+        /// </summary>
+        public void GoBack()
+        {
+            NavigationController.PopViewController(true);
+        }
+
+        /// <summary>
         /// Initialized the navigation service. This method must be called
         /// before the <see cref="NavigateTo(string)"/> or
         /// <see cref="NavigateTo(string, object)"/> methods are called.
@@ -315,7 +208,149 @@ namespace GalaSoft.MvvmLight.Views
         /// <param name="navigation">The application's navigation controller.</param>
         public void Initialize(UINavigationController navigation)
         {
-            _navigation = navigation;
+            NavigationController = navigation;
+        }
+
+        /// <summary>
+        /// Displays a new page corresponding to the given key. 
+        /// Make sure to call the <see cref="Configure(string, Type)"/>
+        /// or <see cref="Configure(string, Func{object,UIViewController})"/>
+        /// method first.
+        /// </summary>
+        /// <param name="pageKey">The key corresponding to the page
+        /// that should be displayed.</param>
+        /// <exception cref="ArgumentException">When this method is called for 
+        /// a key that has not been configured earlier.</exception>
+        public void NavigateTo(string pageKey)
+        {
+            NavigateTo(pageKey, null);
+        }
+
+        /// <summary>
+        /// Displays a new page corresponding to the given key,
+        /// and passes a parameter to the new page's constructor.
+        /// Make sure to call the <see cref="Configure(string, Type)"/>
+        /// or <see cref="Configure(string, Func{object,UIViewController})"/>
+        /// method first.
+        /// </summary>
+        /// <param name="pageKey">The key corresponding to the page
+        /// that should be displayed.</param>
+        /// <param name="parameter">The parameter that should be passed
+        /// to the new page's constructor.</param>
+        /// <exception cref="ArgumentException">When this method is called for 
+        /// a key that has not been configured earlier.</exception>
+        /// <exception cref="InvalidOperationException">When this method is called for 
+        /// a page that doesn't have a suitable constructor (i.e.
+        /// a constructor with a parameter corresponding to the
+        /// navigation parameter's type).</exception>
+        public void NavigateTo(string pageKey, object parameter)
+        {
+            lock (_pagesByKey)
+            {
+                Exception creationException = null;
+                var done = false;
+                TypeActionOrKey item;
+
+                if (_pagesByKey.ContainsKey(pageKey))
+                {
+                    item = _pagesByKey[pageKey];
+                }
+                else
+                {
+                    item = new TypeActionOrKey
+                    {
+                        StoryboardControllerKey = pageKey
+                    };
+                }
+
+                UIViewController controller = null;
+
+                if (item.CreateControllerAction != null)
+                {
+                    try
+                    {
+                        controller = item.CreateControllerAction(parameter);
+                        done = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        creationException = ex;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(item.StoryboardControllerKey))
+                {
+                    if (NavigationController == null)
+                    {
+                        throw new InvalidOperationException(
+                            "Unable to navigate: Did you forget to call NavigationService.Initialize?");
+                    }
+
+                    if (NavigationController.Storyboard == null)
+                    {
+                        throw new InvalidOperationException(
+                            "Unable to navigate: No storyboard found. You need to call NavigationService.Configure!");
+                    }
+
+                    try
+                    {
+                        controller =
+                            NavigationController.Storyboard.InstantiateViewController(item.StoryboardControllerKey);
+                        done = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        creationException = ex;
+                    }
+
+                    if (parameter != null)
+                    {
+                        var casted = controller as ControllerBase;
+                        if (casted != null)
+                        {
+                            casted.NavigationParameter = parameter;
+                        }
+
+                        // Save parameter in list for later
+                        _parametersByController.Add(new WeakReference(controller), parameter);
+                    }
+                }
+
+                if (!done
+                    && item.ControllerType != null)
+                {
+                    try
+                    {
+                        controller = MakeController(item.ControllerType, parameter);
+
+                        if (controller == null)
+                        {
+                            throw new InvalidOperationException(
+                                "No suitable constructor found for page " + pageKey);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        creationException = ex;
+                    }
+                }
+
+                if (controller == null)
+                {
+                    throw new InvalidOperationException(
+                        string.Format(
+                            "Unable to create a controller for key {0}",
+                            pageKey),
+                        creationException);
+                }
+
+                if (item.ControllerType == null)
+                {
+                    item.ControllerType = controller.GetType();
+                }
+
+                NavigationController.PushViewController(controller, true);
+            }
         }
 
         private UIViewController MakeController(Type controllerType, object parameter)
@@ -341,7 +376,7 @@ namespace GalaSoft.MvvmLight.Views
                         c =>
                         {
                             var p = c.GetParameters();
-                            return p.Count() == 1
+                            return p.Length == 1
                                    && p[0].ParameterType == parameter.GetType();
                         });
 
@@ -358,6 +393,21 @@ namespace GalaSoft.MvvmLight.Views
 
             var controller = constructor.Invoke(parameters) as UIViewController;
             return controller;
+        }
+
+        private void SaveConfigurationItem(string key, TypeActionOrKey item)
+        {
+            lock (_pagesByKey)
+            {
+                if (_pagesByKey.ContainsKey(key))
+                {
+                    _pagesByKey[key] = item;
+                }
+                else
+                {
+                    _pagesByKey.Add(key, item);
+                }
+            }
         }
 
         private class TypeActionOrKey

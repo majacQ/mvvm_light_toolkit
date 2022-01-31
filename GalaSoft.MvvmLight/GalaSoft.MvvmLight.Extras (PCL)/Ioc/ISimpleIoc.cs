@@ -1,6 +1,6 @@
 ﻿// ****************************************************************************
 // <copyright file="ISimpleIoc.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2011-2015
+// Copyright © GalaSoft Laurent Bugnion 2011-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -15,7 +15,14 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+
+#if !NETSTANDARD1_0
+#if NEWLOCATOR
+using CommonServiceLocator;
+#else
 using Microsoft.Practices.ServiceLocation;
+#endif
+#endif
 
 namespace GalaSoft.MvvmLight.Ioc
 {
@@ -31,7 +38,10 @@ namespace GalaSoft.MvvmLight.Ioc
         "Microsoft.Naming", 
         "CA1704:IdentifiersShouldBeSpelledCorrectly", 
         MessageId = "Ioc")]
-    public interface ISimpleIoc : IServiceLocator
+    public interface ISimpleIoc
+#if !NETSTANDARD1_0
+        : IServiceLocator
+#endif
     {
         /// <summary>
         /// Checks whether at least one instance of a given class is already created in the container.
@@ -92,8 +102,8 @@ namespace GalaSoft.MvvmLight.Ioc
             "CA1004:GenericMethodsShouldProvideTypeParameter",
             Justification = "This syntax is more convenient than the alternatives.")]
         void Register<TInterface, TClass>()
-            where TClass : class 
-            where TInterface : class;
+            where TInterface : class
+            where TClass : class, TInterface;
 
         /// <summary>
         /// Registers a given type for a given interface with the possibility for immediate
@@ -108,8 +118,8 @@ namespace GalaSoft.MvvmLight.Ioc
             "CA1004:GenericMethodsShouldProvideTypeParameter",
             Justification = "This syntax is more convenient than the alternatives.")]
         void Register<TInterface, TClass>(bool createInstanceImmediately)
-            where TClass : class
-            where TInterface : class;
+            where TInterface : class
+            where TClass : class, TInterface;
 
         /// <summary>
         /// Registers a given type.

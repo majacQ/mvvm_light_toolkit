@@ -1,6 +1,6 @@
 ﻿// ****************************************************************************
 // <copyright file="SimpleIoc.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2011-2015
+// Copyright © GalaSoft Laurent Bugnion 2011-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -20,7 +20,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+
+#if !NETSTANDARD1_0
+#if NEWLOCATOR
+using CommonServiceLocator;
+#else
 using Microsoft.Practices.ServiceLocation;
+#endif
+#endif
 
 namespace GalaSoft.MvvmLight.Ioc
 {
@@ -32,8 +39,8 @@ namespace GalaSoft.MvvmLight.Ioc
     /// been extended with additional features.
     /// </summary>
     //// [ClassInfo(typeof(SimpleIoc),
-    ////  VersionString = "5.1.9",
-    ////  DateString = "201502072030",
+    ////  VersionString = "5.4.10",
+    ////  DateString = "201801022330",
     ////  Description = "A very simple IOC container.",
     ////  UrlContacts = "http://www.galasoft.ch/contact_en.html",
     ////  Email = "laurent@galasoft.ch")]
@@ -60,6 +67,7 @@ namespace GalaSoft.MvvmLight.Ioc
             = new Dictionary<Type, Type>();
 
         private readonly object _syncLock = new object();
+        private static readonly object _instanceLock = new object();
 
         private static SimpleIoc _default;
 
@@ -70,7 +78,18 @@ namespace GalaSoft.MvvmLight.Ioc
         {
             get
             {
-                return _default ?? (_default = new SimpleIoc());
+                if (_default == null)
+                {
+                    lock (_instanceLock)
+                    {
+                        if (_default == null)
+                        {
+                            _default = new SimpleIoc();
+                        }
+                    }
+                }
+
+                return _default;
             }
         }
 
@@ -150,8 +169,8 @@ namespace GalaSoft.MvvmLight.Ioc
             "CA1004",
             Justification = "This syntax is better than the alternatives.")]
         public void Register<TInterface, TClass>()
-            where TClass : class
             where TInterface : class
+            where TClass : class, TInterface
         {
             Register<TInterface, TClass>(false);
         }
@@ -169,8 +188,8 @@ namespace GalaSoft.MvvmLight.Ioc
             "CA1004",
             Justification = "This syntax is better than the alternatives.")]
         public void Register<TInterface, TClass>(bool createInstanceImmediately)
-            where TClass : class
             where TInterface : class
+            where TClass : class, TInterface
         {
             lock (_syncLock)
             {
@@ -181,11 +200,19 @@ namespace GalaSoft.MvvmLight.Ioc
                 {
                     if (_interfaceToClassMap[interfaceType] != classType)
                     {
-                        throw new InvalidOperationException(
-                            string.Format(
-                                CultureInfo.InvariantCulture,
-                                "There is already a class registered for {0}.",
-                                interfaceType.FullName));
+#if DEBUG
+                        // Avoid some issues in the designer when the ViewModelLocator is instantiated twice
+                        if (!Helpers.DesignerLibrary.IsInDesignMode)
+                        {
+#endif
+                            throw new InvalidOperationException(
+                                string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    "There is already a class registered for {0}.",
+                                    interfaceType.FullName));
+#if DEBUG
+                        }
+#endif
                     }
                 }
                 else
@@ -249,14 +276,22 @@ namespace GalaSoft.MvvmLight.Ioc
                 {
                     if (!_constructorInfos.ContainsKey(classType))
                     {
-                        // Throw only if constructorinfos have not been
-                        // registered, which means there is a default factory
-                        // for this class.
-                        throw new InvalidOperationException(
-                            string.Format(
-                                CultureInfo.InvariantCulture,
-                                "Class {0} is already registered.", 
-                                classType));
+#if DEBUG
+                        // Avoid some issues in the designer when the ViewModelLocator is instantiated twice
+                        if (!Helpers.DesignerLibrary.IsInDesignMode)
+                        {
+#endif
+                            // Throw only if constructorinfos have not been
+                            // registered, which means there is a default factory
+                            // for this class.
+                            throw new InvalidOperationException(
+                                string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    "Class {0} is already registered.",
+                                    classType));
+#if DEBUG
+                        }
+#endif
                     }
 
                     return;
@@ -314,11 +349,19 @@ namespace GalaSoft.MvvmLight.Ioc
                 if (_factories.ContainsKey(classType)
                     && _factories[classType].ContainsKey(_defaultKey))
                 {
-                    throw new InvalidOperationException(
-                        string.Format(
-                            CultureInfo.InvariantCulture, 
-                            "There is already a factory registered for {0}.", 
-                            classType.FullName));
+#if DEBUG
+                    // Avoid some issues in the designer when the ViewModelLocator is instantiated twice
+                    if (!Helpers.DesignerLibrary.IsInDesignMode)
+                    {
+#endif
+                        throw new InvalidOperationException(
+                            string.Format(
+                                CultureInfo.InvariantCulture,
+                                "There is already a factory registered for {0}.",
+                                classType.FullName));
+#if DEBUG
+                    }
+#endif
                 }
 
                 if (!_interfaceToClassMap.ContainsKey(classType))
@@ -364,6 +407,12 @@ namespace GalaSoft.MvvmLight.Ioc
             bool createInstanceImmediately)
             where TClass : class
         {
+        
+            if (factory == null)
+            {
+                throw new ArgumentNullException("factory");
+            }
+            
             lock (_syncLock)
             {
                 var classType = typeof(TClass);
@@ -371,12 +420,20 @@ namespace GalaSoft.MvvmLight.Ioc
                 if (_factories.ContainsKey(classType)
                     && _factories[classType].ContainsKey(key))
                 {
-                    throw new InvalidOperationException(
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            "There is already a factory registered for {0} with key {1}.",
-                            classType.FullName,
-                            key));
+#if DEBUG
+                    // Avoid some issues in the designer when the ViewModelLocator is instantiated twice
+                    if (!Helpers.DesignerLibrary.IsInDesignMode)
+                    {
+#endif
+                        throw new InvalidOperationException(
+                            string.Format(
+                                CultureInfo.InvariantCulture,
+                                "There is already a factory registered for {0} with key {1}.",
+                                classType.FullName,
+                                key));
+#if DEBUG
+                    }
+#endif
                 }
 
                 if (!_interfaceToClassMap.ContainsKey(classType))
@@ -534,7 +591,11 @@ namespace GalaSoft.MvvmLight.Ioc
                 {
                     if (!_interfaceToClassMap.ContainsKey(serviceType))
                     {
+#if NETSTANDARD1_0
+                        throw new InvalidOperationException(
+#else
                         throw new ActivationException(
+#endif
                             string.Format(
                                 CultureInfo.InvariantCulture,
                                 "Type not found in cache: {0}.",
@@ -574,7 +635,11 @@ namespace GalaSoft.MvvmLight.Ioc
                         }
                         else
                         {
+#if NETSTANDARD1_0
+                            throw new InvalidOperationException(
+#else
                             throw new ActivationException(
+#endif
                                 string.Format(
                                     CultureInfo.InvariantCulture,
                                     "Type not found in cache without a key: {0}", 
@@ -655,7 +720,11 @@ namespace GalaSoft.MvvmLight.Ioc
                 if (first == null
                     || !first.IsPublic)
                 {
+#if NETSTANDARD1_0
+                    throw new InvalidOperationException(
+#else
                     throw new ActivationException(
+#endif
                         string.Format(
                             CultureInfo.InvariantCulture,
                             "Cannot register: No public constructor found in {0}.", 
@@ -669,7 +738,11 @@ namespace GalaSoft.MvvmLight.Ioc
                 || (constructorInfos.Length == 1
                     && !constructorInfos[0].IsPublic))
             {
+#if NETSTANDARD1_0
+                throw new InvalidOperationException(
+#else
                 throw new ActivationException(
+#endif
                     string.Format(
                         CultureInfo.InvariantCulture,
                         "Cannot register: No public constructor found in {0}.", 
@@ -697,7 +770,11 @@ namespace GalaSoft.MvvmLight.Ioc
 
             if (preferredConstructorInfo == null)
             {
+#if NETSTANDARD1_0
+                throw new InvalidOperationException(
+#else
                 throw new ActivationException(
+#endif
                     string.Format(
                         CultureInfo.InvariantCulture,
                         "Cannot register: Multiple constructors found in {0} but none marked with PreferredConstructor.",
@@ -775,6 +852,17 @@ namespace GalaSoft.MvvmLight.Ioc
 
         #region Implementation of IServiceProvider
 
+#if NETSTANDARD1_0
+        /// <summary>
+        /// Gets the service object of the specified type.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the type serviceType has not
+        /// been registered before calling this method.</exception>
+        /// <returns>
+        /// A service object of type <paramref name="serviceType" />.
+        /// </returns>
+        /// <param name="serviceType">An object that specifies the type of service object to get.</param>
+#else
         /// <summary>
         /// Gets the service object of the specified type.
         /// </summary>
@@ -784,14 +872,15 @@ namespace GalaSoft.MvvmLight.Ioc
         /// A service object of type <paramref name="serviceType" />.
         /// </returns>
         /// <param name="serviceType">An object that specifies the type of service object to get.</param>
+#endif
         public object GetService(Type serviceType)
         {
             return DoGetService(serviceType, _defaultKey);
         }
 
-        #endregion
+#endregion
 
-        #region Implementation of IServiceLocator
+#region Implementation of IServiceLocator
 
         /// <summary>
         /// Provides a way to get all the created instances of a given type available in the
@@ -838,6 +927,18 @@ namespace GalaSoft.MvvmLight.Ioc
                 .Select(instance => (TService)instance);
         }
 
+#if NETSTANDARD1_0
+        /// <summary>
+        /// Provides a way to get an instance of a given type. If no instance had been instantiated 
+        /// before, a new instance will be created. If an instance had already
+        /// been created, that same instance will be returned.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the type serviceType has not
+        /// been registered before calling this method.</exception>
+        /// <param name="serviceType">The class of which an instance
+        /// must be returned.</param>
+        /// <returns>An instance of the given type.</returns>
+#else
         /// <summary>
         /// Provides a way to get an instance of a given type. If no instance had been instantiated 
         /// before, a new instance will be created. If an instance had already
@@ -848,11 +949,23 @@ namespace GalaSoft.MvvmLight.Ioc
         /// <param name="serviceType">The class of which an instance
         /// must be returned.</param>
         /// <returns>An instance of the given type.</returns>
+#endif
         public object GetInstance(Type serviceType)
         {
             return DoGetService(serviceType, _defaultKey);
         }
 
+#if NETSTANDARD1_0
+        /// <summary>
+        /// Provides a way to get an instance of a given type. This method
+        /// always returns a new instance and doesn't cache it in the IOC container.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the type serviceType has not
+        /// been registered before calling this method.</exception>
+        /// <param name="serviceType">The class of which an instance
+        /// must be returned.</param>
+        /// <returns>An instance of the given type.</returns>
+#else
         /// <summary>
         /// Provides a way to get an instance of a given type. This method
         /// always returns a new instance and doesn't cache it in the IOC container.
@@ -862,11 +975,25 @@ namespace GalaSoft.MvvmLight.Ioc
         /// <param name="serviceType">The class of which an instance
         /// must be returned.</param>
         /// <returns>An instance of the given type.</returns>
+#endif
         public object GetInstanceWithoutCaching(Type serviceType)
         {
             return DoGetService(serviceType, _defaultKey, false);
         }
 
+#if NETSTANDARD1_0
+        /// <summary>
+        /// Provides a way to get an instance of a given type corresponding
+        /// to a given key. If no instance had been instantiated with this
+        /// key before, a new instance will be created. If an instance had already
+        /// been created with the same key, that same instance will be returned.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the type serviceType has not
+        /// been registered before calling this method.</exception>
+        /// <param name="serviceType">The class of which an instance must be returned.</param>
+        /// <param name="key">The key uniquely identifying this instance.</param>
+        /// <returns>An instance corresponding to the given type and key.</returns>
+#else
         /// <summary>
         /// Provides a way to get an instance of a given type corresponding
         /// to a given key. If no instance had been instantiated with this
@@ -878,11 +1005,23 @@ namespace GalaSoft.MvvmLight.Ioc
         /// <param name="serviceType">The class of which an instance must be returned.</param>
         /// <param name="key">The key uniquely identifying this instance.</param>
         /// <returns>An instance corresponding to the given type and key.</returns>
+#endif
         public object GetInstance(Type serviceType, string key)
         {
             return DoGetService(serviceType, key);
         }
 
+#if NETSTANDARD1_0
+        /// <summary>
+        /// Provides a way to get an instance of a given type. This method
+        /// always returns a new instance and doesn't cache it in the IOC container.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the type serviceType has not
+        /// been registered before calling this method.</exception>
+        /// <param name="serviceType">The class of which an instance must be returned.</param>
+        /// <param name="key">The key uniquely identifying this instance.</param>
+        /// <returns>An instance corresponding to the given type and key.</returns>
+#else
         /// <summary>
         /// Provides a way to get an instance of a given type. This method
         /// always returns a new instance and doesn't cache it in the IOC container.
@@ -892,11 +1031,24 @@ namespace GalaSoft.MvvmLight.Ioc
         /// <param name="serviceType">The class of which an instance must be returned.</param>
         /// <param name="key">The key uniquely identifying this instance.</param>
         /// <returns>An instance corresponding to the given type and key.</returns>
+#endif
         public object GetInstanceWithoutCaching(Type serviceType, string key)
         {
             return DoGetService(serviceType, key, false);
         }
 
+#if NETSTANDARD1_0
+        /// <summary>
+        /// Provides a way to get an instance of a given type. If no instance had been instantiated 
+        /// before, a new instance will be created. If an instance had already
+        /// been created, that same instance will be returned.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the type TService has not
+        /// been registered before calling this method.</exception>
+        /// <typeparam name="TService">The class of which an instance
+        /// must be returned.</typeparam>
+        /// <returns>An instance of the given type.</returns>
+#else
         /// <summary>
         /// Provides a way to get an instance of a given type. If no instance had been instantiated 
         /// before, a new instance will be created. If an instance had already
@@ -907,11 +1059,23 @@ namespace GalaSoft.MvvmLight.Ioc
         /// <typeparam name="TService">The class of which an instance
         /// must be returned.</typeparam>
         /// <returns>An instance of the given type.</returns>
+#endif
         public TService GetInstance<TService>()
         {
             return (TService)DoGetService(typeof(TService), _defaultKey);
         }
 
+#if NETSTANDARD1_0
+        /// <summary>
+        /// Provides a way to get an instance of a given type. This method
+        /// always returns a new instance and doesn't cache it in the IOC container.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the type TService has not
+        /// been registered before calling this method.</exception>
+        /// <typeparam name="TService">The class of which an instance
+        /// must be returned.</typeparam>
+        /// <returns>An instance of the given type.</returns>
+#else
         /// <summary>
         /// Provides a way to get an instance of a given type. This method
         /// always returns a new instance and doesn't cache it in the IOC container.
@@ -921,11 +1085,25 @@ namespace GalaSoft.MvvmLight.Ioc
         /// <typeparam name="TService">The class of which an instance
         /// must be returned.</typeparam>
         /// <returns>An instance of the given type.</returns>
+#endif
         public TService GetInstanceWithoutCaching<TService>()
         {
             return (TService)DoGetService(typeof(TService), _defaultKey, false);
         }
 
+#if NETSTANDARD1_0
+        /// <summary>
+        /// Provides a way to get an instance of a given type corresponding
+        /// to a given key. If no instance had been instantiated with this
+        /// key before, a new instance will be created. If an instance had already
+        /// been created with the same key, that same instance will be returned.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the type TService has not
+        /// been registered before calling this method.</exception>
+        /// <typeparam name="TService">The class of which an instance must be returned.</typeparam>
+        /// <param name="key">The key uniquely identifying this instance.</param>
+        /// <returns>An instance corresponding to the given type and key.</returns>
+#else
         /// <summary>
         /// Provides a way to get an instance of a given type corresponding
         /// to a given key. If no instance had been instantiated with this
@@ -937,11 +1115,23 @@ namespace GalaSoft.MvvmLight.Ioc
         /// <typeparam name="TService">The class of which an instance must be returned.</typeparam>
         /// <param name="key">The key uniquely identifying this instance.</param>
         /// <returns>An instance corresponding to the given type and key.</returns>
+#endif
         public TService GetInstance<TService>(string key)
         {
             return (TService)DoGetService(typeof(TService), key);
         }
 
+#if NETSTANDARD1_0
+        /// <summary>
+        /// Provides a way to get an instance of a given type. This method
+        /// always returns a new instance and doesn't cache it in the IOC container.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the type TService has not
+        /// been registered before calling this method.</exception>
+        /// <typeparam name="TService">The class of which an instance must be returned.</typeparam>
+        /// <param name="key">The key uniquely identifying this instance.</param>
+        /// <returns>An instance corresponding to the given type and key.</returns>
+#else
         /// <summary>
         /// Provides a way to get an instance of a given type. This method
         /// always returns a new instance and doesn't cache it in the IOC container.
@@ -951,11 +1141,12 @@ namespace GalaSoft.MvvmLight.Ioc
         /// <typeparam name="TService">The class of which an instance must be returned.</typeparam>
         /// <param name="key">The key uniquely identifying this instance.</param>
         /// <returns>An instance corresponding to the given type and key.</returns>
+#endif
         public TService GetInstanceWithoutCaching<TService>(string key)
         {
             return (TService)DoGetService(typeof(TService), key, false);
         }
 
-        #endregion
+#endregion
     }
 }

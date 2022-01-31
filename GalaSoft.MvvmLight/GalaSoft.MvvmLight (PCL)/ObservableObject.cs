@@ -1,6 +1,6 @@
 ﻿// ****************************************************************************
 // <copyright file="ObservableObject.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2011-2015
+// Copyright © GalaSoft Laurent Bugnion 2011-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -87,10 +87,29 @@ namespace GalaSoft.MvvmLight
             var myType = GetType();
 
 #if NETFX_CORE
+            var info = myType.GetTypeInfo();
+
             if (!string.IsNullOrEmpty(propertyName)
-                && myType.GetTypeInfo().GetDeclaredProperty(propertyName) == null)
+                && info.GetDeclaredProperty(propertyName) == null)
             {
-                throw new ArgumentException("Property not found", propertyName);
+                // Check base types
+                var found = false;
+
+                while (info.BaseType != typeof(Object))
+                {
+                    info = info.BaseType.GetTypeInfo();
+
+                    if (info.GetDeclaredProperty(propertyName) != null)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    throw new ArgumentException("Property not found", propertyName);
+                }
             }
 #else
             if (!string.IsNullOrEmpty(propertyName)
@@ -129,7 +148,7 @@ namespace GalaSoft.MvvmLight
             "Microsoft.Design", 
             "CA1030:UseEventsWhereAppropriate",
             Justification = "This cannot be an event")]
-        protected virtual void RaisePropertyChanging(
+        public virtual void RaisePropertyChanging(
             [CallerMemberName] string propertyName = null)
 #else
         /// <summary>
@@ -144,7 +163,7 @@ namespace GalaSoft.MvvmLight
             "Microsoft.Design", 
             "CA1030:UseEventsWhereAppropriate",
             Justification = "This cannot be an event")]
-        protected virtual void RaisePropertyChanging(
+        public virtual void RaisePropertyChanging(
             string propertyName)
 #endif
         {
@@ -171,7 +190,7 @@ namespace GalaSoft.MvvmLight
             "Microsoft.Design", 
             "CA1030:UseEventsWhereAppropriate",
             Justification = "This cannot be an event")]
-        protected virtual void RaisePropertyChanged(
+        public virtual void RaisePropertyChanged(
             [CallerMemberName] string propertyName = null)
 #else
         /// <summary>
@@ -186,7 +205,7 @@ namespace GalaSoft.MvvmLight
             "Microsoft.Design", 
             "CA1030:UseEventsWhereAppropriate",
             Justification = "This cannot be an event")]
-        protected virtual void RaisePropertyChanged(
+        public virtual void RaisePropertyChanged(
             string propertyName) 
 #endif
         {
@@ -215,7 +234,7 @@ namespace GalaSoft.MvvmLight
             "Microsoft.Design",
             "CA1006:GenericMethodsShouldProvideTypeParameter",
             Justification = "This syntax is more convenient than other alternatives.")]
-        protected virtual void RaisePropertyChanging<T>(Expression<Func<T>> propertyExpression)
+        public virtual void RaisePropertyChanging<T>(Expression<Func<T>> propertyExpression)
         {
             var handler = PropertyChanging;
             if (handler != null)
@@ -241,13 +260,19 @@ namespace GalaSoft.MvvmLight
             "Microsoft.Design",
             "CA1006:GenericMethodsShouldProvideTypeParameter",
             Justification = "This syntax is more convenient than other alternatives.")]
-        protected virtual void RaisePropertyChanged<T>(Expression<Func<T>> propertyExpression)
+        public virtual void RaisePropertyChanged<T>(Expression<Func<T>> propertyExpression)
         {
             var handler = PropertyChanged;
+
             if (handler != null)
             {
                 var propertyName = GetPropertyName(propertyExpression);
-                handler(this, new PropertyChangedEventArgs(propertyName));
+
+                if (!string.IsNullOrEmpty(propertyName))
+                {
+                    // ReSharper disable once ExplicitCallerInfoArgument
+                    RaisePropertyChanged(propertyName);
+                }
             }
         }
 

@@ -1,6 +1,6 @@
 ﻿// ****************************************************************************
 // <copyright file="Binding.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2009-2015
+// Copyright © GalaSoft Laurent Bugnion 2009-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -21,8 +21,8 @@ namespace GalaSoft.MvvmLight.Helpers
     /// Base class for bindings in Xamarin.iOS and Xamarin.Android.
     /// </summary>
     ////[ClassInfo(typeof(Binding),
-    ////    VersionString = "5.1.2",
-    ////    DateString = "201502072030",
+    ////    VersionString = "5.4.4",
+    ////    DateString = "201801022330",
     ////    Description = "Base class for bindings in Xamarin.iOS and Xamarin.Android",
     ////    UrlContacts = "http://www.galasoft.ch/contact_en.html",
     ////    Email = "laurent@galasoft.ch")]
@@ -37,11 +37,6 @@ namespace GalaSoft.MvvmLight.Helpers
         /// The target at the "top" of the property chain.
         /// </summary>
         protected WeakReference TopTarget;
-
-        /// <summary>
-        /// Occurs when the value of the databound property changes.
-        /// </summary>
-        public abstract event EventHandler ValueChanged;
 
         /// <summary>
         /// The mode of the binding. OneTime means that the target property will be set once (when the binding is
@@ -99,5 +94,10 @@ namespace GalaSoft.MvvmLight.Helpers
         /// be set to the target value.
         /// </summary>
         public abstract void ForceUpdateValueFromTargetToSource();
+
+        /// <summary>
+        /// Occurs when the value of the databound property changes.
+        /// </summary>
+        public abstract event EventHandler ValueChanged;
     }
 }

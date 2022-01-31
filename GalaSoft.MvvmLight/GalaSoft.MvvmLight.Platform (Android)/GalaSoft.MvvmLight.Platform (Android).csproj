@@ -15,13 +15,14 @@
     <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AndroidUseLatestPlatformSdk>True</AndroidUseLatestPlatformSdk>
+    <TargetFrameworkVersion>v7.1</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;XAMARIN;ANDROID</DefineConstants>
+    <DefineConstants>TRACE;XAMARIN;ANDROID;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\GalaSoft.MvvmLight.Platform.XML</DocumentationFile>
@@ -42,6 +43,8 @@
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Threading.Tasks" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -50,8 +53,12 @@
       <Link>Properties\AssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Helpers\Binding.cs" />
+    <Compile Include="Helpers\BindingGenericObsoleteAndroid.cs" />
+    <Compile Include="Helpers\BindingGenericObsolete.cs" />
     <Compile Include="Helpers\BindingGeneric.cs" />
+    <Compile Include="Helpers\BindingGenericAndroid.cs" />
     <Compile Include="Helpers\BindingMode.cs" />
+    <Compile Include="Helpers\ExtensionsAndroid.cs" />
     <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="Helpers\IWeakEventListener.cs" />
     <Compile Include="Helpers\ObservableAdapter.cs" />
@@ -62,12 +69,6 @@
     <Compile Include="Views\ActivityBase.cs" />
     <Compile Include="Views\DialogService.cs" />
     <Compile Include="Views\NavigationService.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\AboutResources.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\Values\Strings.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GalaSoft.MvvmLight %28PCL%29\GalaSoft.MvvmLight %28PCL%29.csproj">

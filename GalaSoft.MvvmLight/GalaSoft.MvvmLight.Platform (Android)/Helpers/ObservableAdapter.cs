@@ -1,6 +1,6 @@
 // ****************************************************************************
 // <copyright file="ObservableAdapter.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2009-2015
+// Copyright © GalaSoft Laurent Bugnion 2009-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -29,13 +29,13 @@ namespace GalaSoft.MvvmLight.Helpers
     /// </summary>
     /// <typeparam name="T">The type of the items contained in the <see cref="DataSource"/>.</typeparam>
     ////[ClassInfo(typeof(ObservableAdapter<T>),
-    ////    VersionString = "5.1.1",
-    ////    DateString = "201502072030",
+    ////    VersionString = "5.3.2",
+    ////    DateString = "201604212130",
     ////    UrlContacts = "http://www.galasoft.ch/contact_en.html",
     ////    Email = "laurent@galasoft.ch")]
     public class ObservableAdapter<T> : BaseAdapter<T>
     {
-        private IList<T> _list;
+        private IList<T> _dataSource;
         private INotifyCollectionChanged _notifier;
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace GalaSoft.MvvmLight.Helpers
         {
             get
             {
-                return _list == null ? 0 : _list.Count;
+                return _dataSource == null ? 0 : _dataSource.Count;
             }
         }
 
@@ -56,11 +56,11 @@ namespace GalaSoft.MvvmLight.Helpers
         {
             get
             {
-                return _list;
+                return _dataSource;
             }
             set
             {
-                if (Equals(_list, value))
+                if (Equals(_dataSource, value))
                 {
                     return;
                 }
@@ -70,8 +70,8 @@ namespace GalaSoft.MvvmLight.Helpers
                     _notifier.CollectionChanged -= NotifierCollectionChanged;
                 }
 
-                _list = value;
-                _notifier = _list as INotifyCollectionChanged;
+                _dataSource = value;
+                _notifier = _dataSource as INotifyCollectionChanged;
 
                 if (_notifier != null)
                 {
@@ -100,7 +100,7 @@ namespace GalaSoft.MvvmLight.Helpers
         {
             get
             {
-                return _list == null ? default(T) : _list[index];
+                return _dataSource == null ? default(T) : _dataSource[index];
             }
         }
 
@@ -132,7 +132,7 @@ namespace GalaSoft.MvvmLight.Helpers
                 return convertView;
             }
 
-            var item = _list[position];
+            var item = _dataSource[position];
             var view = GetTemplateDelegate(position, item, convertView);
             return view;
         }

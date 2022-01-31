@@ -1,6 +1,6 @@
-﻿// ****************************************************************************
+// ****************************************************************************
 // <copyright file="AssemblyInfo.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2009-2015
+// Copyright © GalaSoft Laurent Bugnion 2009-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -30,7 +30,7 @@ using System.Windows.Markup;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("GalaSoft Laurent Bugnion @ http://www.galasoft.ch")]
 [assembly: AssemblyProduct("GalaSoft.MvvmLight.Platform")]
-[assembly: AssemblyCopyright("Copyright © GalaSoft Laurent Bugnion 2009-2015")]
+[assembly: AssemblyCopyright("Copyright © GalaSoft Laurent Bugnion 2009-2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -46,5 +46,4 @@ using System.Windows.Markup;
 [assembly: CLSCompliant(true)]
 [assembly:NeutralResourcesLanguage("en-US")]
 
-// BL0034
-[assembly: AssemblyVersion("5.1.1.*")]
+[assembly: AssemblyVersion("5.4.1.0")]

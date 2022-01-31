@@ -1,6 +1,6 @@
 // ****************************************************************************
 // <copyright file="ObservableTableViewController.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2009-2015
+// Copyright © GalaSoft Laurent Bugnion 2009-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -38,8 +38,8 @@ namespace GalaSoft.MvvmLight.Helpers
     /// </remarks>
     /// <typeparam name="T">The type of the items contained in the <see cref="DataSource"/>.</typeparam>
     ////[ClassInfo(typeof(ObservableTableViewController<T>),
-    ////    VersionString = "5.1.1",
-    ////    DateString = "201502072030",
+    ////    VersionString = "5.3.2",
+    ////    DateString = "201604212130",
     ////    UrlContacts = "http://www.galasoft.ch/contact_en.html",
     ////    Email = "laurent@galasoft.ch")]
     public class ObservableTableViewController<T> : UITableViewController, INotifyPropertyChanged
@@ -53,13 +53,7 @@ namespace GalaSoft.MvvmLight.Helpers
         private bool _loadedView;
         private Thread _mainThread;
         private INotifyCollectionChanged _notifier;
-        private T _selectedItem;
         private ObservableTableSource<T> _tableSource;
-
-        /// <summary>
-        /// Occurs when a new item gets selected in the list.
-        /// </summary>
-        public event EventHandler SelectionChanged;
 
         /// <summary>
         /// When set, specifies which animation should be used when rows change.
@@ -181,15 +175,22 @@ namespace GalaSoft.MvvmLight.Helpers
         }
 
         /// <summary>
+        /// A reuse identifier for the TableView's cells.
+        /// </summary>
+        public string ReuseId
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets the TableView's selected item.
         /// Changes to that property's value raise the PropertyChanged event. 
         /// </summary>
         public T SelectedItem
         {
-            get
-            {
-                return _selectedItem;
-            }
+            get;
+            private set;
         }
 
         /// <summary>
@@ -218,16 +219,7 @@ namespace GalaSoft.MvvmLight.Helpers
             set
             {
                 base.TableView = value;
-
-                if (_tableSource == null)
-                {
-                    base.TableView.Source = CreateSource();
-                }
-                else
-                {
-                    base.TableView.Source = _tableSource;
-                }
-
+                base.TableView.Source = _tableSource ?? CreateSource();
                 _loadedView = true;
             }
         }
@@ -250,11 +242,6 @@ namespace GalaSoft.MvvmLight.Helpers
         {
             Initialize();
         }
-
-        /// <summary>
-        /// Occurs when a property of this instance changes.
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Overrides the <see cref="UIViewController.ViewDidLoad"/> method.
@@ -309,7 +296,11 @@ namespace GalaSoft.MvvmLight.Helpers
         /// <returns>The created ObservableTableSource.</returns>
         protected virtual ObservableTableSource<T> CreateSource()
         {
-            _tableSource = new ObservableTableSource<T>(this);
+            _tableSource = new ObservableTableSource<T>(this)
+            {
+                ReuseId = ReuseId
+            };
+
             return _tableSource;
         }
 
@@ -320,7 +311,7 @@ namespace GalaSoft.MvvmLight.Helpers
         /// <param name="indexPath">The NSIndexPath for the selected row.</param>
         protected virtual void OnRowSelected(object item, NSIndexPath indexPath)
         {
-            _selectedItem = (T)item;
+            SelectedItem = (T)item;
 
             // ReSharper disable ExplicitCallerInfoArgument
             RaisePropertyChanged(SelectedItemPropertyName);
@@ -404,6 +395,16 @@ namespace GalaSoft.MvvmLight.Helpers
         }
 
         /// <summary>
+        /// Occurs when a property of this instance changes.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Occurs when a new item gets selected in the list.
+        /// </summary>
+        public event EventHandler SelectionChanged;
+
+        /// <summary>
         /// A <see cref="UITableViewSource"/> that handles changes to the underlying
         /// data source if this data source is an <see cref="INotifyCollectionChanged"/>.
         /// </summary>
@@ -412,7 +413,33 @@ namespace GalaSoft.MvvmLight.Helpers
         protected class ObservableTableSource<T2> : UITableViewSource
         {
             private readonly ObservableTableViewController<T2> _controller;
-            private readonly NSString _reuseId = new NSString("C");
+            private readonly NSString _defaultReuseId = new NSString("C");
+
+            private NSString _reuseId;
+
+            /// <summary>
+            /// A reuse identifier for the TableView's cells.
+            /// </summary>
+            public string ReuseId
+            {
+                get
+                {
+                    return NsReuseId.ToString();
+                }
+
+                set
+                {
+                    _reuseId = string.IsNullOrEmpty(value) ? null : new NSString(value);
+                }
+            }
+
+            private NSString NsReuseId
+            {
+                get
+                {
+                    return _reuseId ?? _defaultReuseId;
+                }
+            }
 
             /// <summary>
             /// Initializes an instance of this class.
@@ -431,8 +458,8 @@ namespace GalaSoft.MvvmLight.Helpers
             /// <returns>The created or recycled cell.</returns>
             public override UITableViewCell GetCell(UITableView tableView, NSIndexPath indexPath)
             {
-                var cell = tableView.DequeueReusableCell(_reuseId) ??
-                           _controller.CreateCell(_reuseId);
+                var cell = tableView.DequeueReusableCell(NsReuseId) ??
+                           _controller.CreateCell(NsReuseId);
 
                 try
                 {

@@ -1,6 +1,6 @@
 // ****************************************************************************
 // <copyright file="ActivityBase.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2009-2015
+// Copyright © GalaSoft Laurent Bugnion 2009-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -13,7 +13,6 @@
 // </license>
 // ****************************************************************************
 
-using System;
 using Android.App;
 
 namespace GalaSoft.MvvmLight.Views
@@ -34,6 +33,18 @@ namespace GalaSoft.MvvmLight.Views
             private set;
         }
 
+        internal string ActivityKey
+        {
+            get;
+            private set;
+        }
+
+        internal static string NextPageKey
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// If possible, discards the current page and displays the previous page
         /// on the navigation stack.
@@ -44,30 +55,6 @@ namespace GalaSoft.MvvmLight.Views
             {
                 CurrentActivity.OnBackPressed();
             }
-        }
-
-        /// <summary>
-        /// Overrides <see cref="Activity.OnDestroy"/>. If you override
-        /// this method in your own Activities, make sure to call
-        /// base.OnDestroy to allow the <see cref="NavigationService"/>
-        /// to work properly.
-        /// </summary>
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-            Cleanup();
-        }
-
-        /// <summary>
-        /// Overrides <see cref="Activity.OnPause"/>. If you override
-        /// this method in your own Activities, make sure to call
-        /// base.OnPause to allow the <see cref="NavigationService"/>
-        /// to work properly.
-        /// </summary>
-        protected override void OnPause()
-        {
-            base.OnPause();
-            Cleanup();
         }
 
         /// <summary>
@@ -87,26 +74,6 @@ namespace GalaSoft.MvvmLight.Views
             }
 
             base.OnResume();
-        }
-
-        private void Cleanup()
-        {
-            if (CurrentActivity == this)
-            {
-                CurrentActivity = null;
-            }
-        }
-
-        internal string ActivityKey
-        {
-            get;
-            private set;
-        }
-
-        internal static string NextPageKey
-        {
-            get;
-            set;
         }
     }
 }

@@ -1,16 +1,16 @@
-#param($installPath, $toolsPath, $package, $project)
+param($installPath, $toolsPath, $package, $project)
 
 # find the App.xaml file 
 #$appxaml = $project.ProjectItems | where {$_.Name -eq "App.xaml"}
 #$appxamlPath = ($appxaml.Properties | where {$_.Name -eq "LocalPath"}).Value
 
 # find the CSPROJ file 
-#$projectPath = ($project.Properties | where {$_.Name -eq "LocalPath"}).Value + $project.Name + ".csproj"
-#$namespace = $project.Properties.Item("RootNamespace").Value
+$projectPath = ($project.Properties | where {$_.Name -eq "LocalPath"}).Value + $project.Name + ".csproj"
+$namespace = $project.Properties.Item("RootNamespace").Value
 
 # DEBUG ONLY
-$namespace = "App1"
-$projectPath = "C:\MvvmLight\TEMPO2\AllPlatformsNoVm\Univ\Univ.Windows\Univ.Windows.csproj"
+#$namespace = "Univ"
+#$projectPath = "C:\MvvmLight\TEMPO2\AllPlatformsNoVm\Univ\Univ.Windows\Univ.Windows.csproj"
 # DEBUG ONLY
 
 $isUniversal = $false
@@ -50,7 +50,7 @@ if ($appxamlPath -eq $null)
 	# TODO Xamarin
 	# add the required .NET assembly:
 	Add-Type -AssemblyName PresentationFramework 
-	[System.Windows.MessageBox]::Show('Cannot find App.xaml in this project, no other changes made.', 'Warning', 'OK')
+	[System.Windows.MessageBox]::Show('Cannot find App.xaml in this project, no other changes made. If you are installing in a PCL, please use "MVVM Light Libs Only" instead.', 'Warning', 'OK')
 }
 else
 {

@@ -1,6 +1,6 @@
 ﻿// ****************************************************************************
 // <copyright file="DialogService.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2009-2015
+// Copyright © GalaSoft Laurent Bugnion 2009-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -120,7 +120,7 @@ namespace GalaSoft.MvvmLight.Views
                 message, 
                 title, 
                 buttonConfirmText, 
-                buttonCancelText, 
+                buttonCancelText,
                 null, 
                 afterHideCallback,
                 r => result = r);
@@ -199,7 +199,7 @@ namespace GalaSoft.MvvmLight.Views
                             }
                         }));
 
-                dialog.CancelCommandIndex = 0;
+                dialog.CancelCommandIndex = 1;
             }
 
             return dialog;

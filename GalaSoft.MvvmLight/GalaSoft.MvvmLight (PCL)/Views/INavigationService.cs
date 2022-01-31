@@ -1,6 +1,6 @@
 ﻿// ****************************************************************************
 // <copyright file="INavigationService.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2009-2015
+// Copyright © GalaSoft Laurent Bugnion 2009-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -21,8 +21,8 @@ namespace GalaSoft.MvvmLight.Views
     /// Windows Phone, Android, iOS etc.
     /// </summary>
     ////[ClassInfo(typeof(INavigationService),
-    ////    VersionString = "5.1.3",
-    ////    DateString = "201502151930",
+    ////    VersionString = "5.3.5",
+    ////    DateString = "201604212130",
     ////    UrlContacts = "http://www.galasoft.ch/contact_en.html",
     ////    Email = "laurent@galasoft.ch")]
     public interface INavigationService

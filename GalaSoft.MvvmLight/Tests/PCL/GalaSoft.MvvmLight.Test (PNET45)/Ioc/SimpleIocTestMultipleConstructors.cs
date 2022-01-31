@@ -2,7 +2,14 @@
 using System.Diagnostics;
 using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Test.Stubs;
+
+#if !NETSTANDARD1_0
+#if NEWLOCATOR
+using CommonServiceLocator;
+#else
 using Microsoft.Practices.ServiceLocation;
+#endif
+#endif
 
 #if NEWUNITTEST
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
@@ -65,7 +72,11 @@ namespace GalaSoft.MvvmLight.Test.Ioc
                 SimpleIoc.Default.Register<TestClass6>();
                 Assert.Fail("ActivationException was expected");
             }
+#if NETSTANDARD1_0
+            catch (InvalidOperationException ex)
+#else
             catch (ActivationException ex)
+#endif
             {
                 Debug.WriteLine(ex.Message);
             }
@@ -81,7 +92,11 @@ namespace GalaSoft.MvvmLight.Test.Ioc
                 SimpleIoc.Default.Register<TestClass7>();
                 Assert.Fail("ActivationException was expected");
             }
+#if NETSTANDARD1_0
+            catch (InvalidOperationException ex)
+#else
             catch (ActivationException ex)
+#endif
             {
                 Debug.WriteLine(ex.Message);
             }

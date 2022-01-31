@@ -1,6 +1,6 @@
 ﻿// ****************************************************************************
 // <copyright file="IWeakEventListener.cs" company="GalaSoft Laurent Bugnion">
-// Copyright © GalaSoft Laurent Bugnion 2009-2015
+// Copyright © GalaSoft Laurent Bugnion 2009-2016
 // </copyright>
 // ****************************************************************************
 // <author>Laurent Bugnion</author>
@@ -14,8 +14,9 @@
 // ****************************************************************************
 
 // ReSharper disable CheckNamespace
+
 namespace System.Windows
-// ReSharper restore CheckNamespace
+    // ReSharper restore CheckNamespace
 {
     /// <summary>
     /// Provides event listening support for classes that expect to receive events 
@@ -24,6 +25,14 @@ namespace System.Windows
     ////[ClassInfo(typeof(Binding))]
     public interface IWeakEventListener
     {
+        /// <summary>
+        /// Gets the WeakReference holding the instance that raised the event.
+        /// </summary>
+        WeakReference InstanceReference
+        {
+            get;
+        }
+
         /// <summary>
         /// Receives events from the centralized event manager. 
         /// </summary>

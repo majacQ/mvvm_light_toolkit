@@ -9,6 +9,7 @@ namespace GalaSoft.MvvmLight.Views
     /// using Storyboards.
     /// </summary>
     ////[ClassInfo(typeof(INavigationService))]
+    [Obsolete("This class is not needed anymore. Instead, use a normal UIViewController, and then use NavigationService.GetAndRemoveParameter to retrieve the navigation parameter.")]
     public class ControllerBase : UIViewController
     {
         /// <summary>
@@ -19,17 +20,6 @@ namespace GalaSoft.MvvmLight.Views
         {
             get;
             set;
-        }
-
-        /// <summary>
-        /// A constructor used when creating managed representations of unmanaged objects;
-        /// Called by the runtime.
-        /// </summary>
-        /// <param name="handle">Pointer (handle) to the unmanaged object.</param>
-        /// <remarks>Check the remarks on <see cref="UIViewController(IntPtr)"/></remarks>
-        protected internal ControllerBase(IntPtr handle)
-            : base(handle)
-        {
         }
 
         /// <summary>
@@ -72,6 +62,17 @@ namespace GalaSoft.MvvmLight.Views
         /// Initializes an instance of this class.
         /// </summary>
         public ControllerBase()
+        {
+        }
+
+        /// <summary>
+        /// A constructor used when creating managed representations of unmanaged objects;
+        /// Called by the runtime.
+        /// </summary>
+        /// <param name="handle">Pointer (handle) to the unmanaged object.</param>
+        /// <remarks>Check the remarks on <see cref="UIViewController(IntPtr)"/></remarks>
+        protected internal ControllerBase(IntPtr handle)
+            : base(handle)
         {
         }
     }
